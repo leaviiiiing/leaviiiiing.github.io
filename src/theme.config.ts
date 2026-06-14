@@ -12,14 +12,13 @@ export default defineConfig({
     { href: "/", text: "首页", icon: "i-ri-home-line" },
     {
       text: "文章",
-      href: "/archives/",
+      href: "/categories/",
       icon: "i-ri-quill-pen-fill",
       dropbox: {
         enable: true,
         items: [
           { href: "/categories/", text: "分类", icon: "i-ri-book-shelf-fill" },
           { href: "/tags/", text: "标签", icon: "i-ri-price-tag-3-fill" },
-          { href: "/archives/", text: "归档", icon: "i-ri-archive-line" },
         ],
       },
     },
