@@ -1,7 +1,7 @@
 ---
 title: SAST-Shop开发笔记
 date: 2026-06-14
-tags: [Go, 飞书, OAuth, 微服务, Redis]
+tags: [Go,, OAuth, 微服务, Redis]
 description: 在 SAST Shop v2 负责飞书 OAuth 认证模块的开发记录。从手写 HTTP 客户端到切官方 SDK，再到完整的用户登录链路与前端 JSAPI 鉴权。
 ---
 
@@ -241,23 +241,7 @@ func GetUserByFeishuOpenID(ctx context.Context, openID string) (*model.UserAccou
 
 ---
 
-## Day 5：注释中文化与 AuthSession
-
-### 注释中文化
-
-将 `nolint` 注释的说明部分改为中文：
-
-```go
-//nolint:gosec // AccessToken 存入 Redis 会话，不会打到日志
-```
-
-`gosec` 指令保留英文（工具识别标记），解释部分使用团队最熟悉的语言。
-
-### gitignore 追加
-
-`CLAUDE.md` 是 Claude Code 自动生成的上下文文件，对不使用该工具的同学属于噪音，加入 `.gitignore`。
-
-### AuthSession 表
+## Day 5：AuthSession
 
 新增 `CreateAuthSession`，每次登录记录一条会话：
 
