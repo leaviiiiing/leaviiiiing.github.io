@@ -37,6 +37,9 @@ export default defineConfig({
       enable: false,
     },
   },
+  widgets: {
+    randomPosts: false,
+  },
   comments: {
     enable: false,
   },

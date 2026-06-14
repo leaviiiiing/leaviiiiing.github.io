@@ -4,7 +4,7 @@ a:after {
 }
 
 body {
-  background: linear-gradient(to top, var(--body-bg-shadow) 0, var(--grey-1) 20%) no-repeat bottom;
+  background: linear-gradient(to top, var(--body-bg-shadow) 0, oklch(0.98 0.02 95) 20%) no-repeat bottom;
   color: var(--text-color);
   -webkit-font-smoothing: antialiased;
   font-size: 1em;
@@ -100,13 +100,13 @@ textarea {
 }
 
 main {
-  background: linear-gradient(to top, var(--body-bg-shadow) 0, var(--grey-1) 20%) no-repeat bottom;
+  background: linear-gradient(to top, var(--body-bg-shadow) 0, oklch(0.98 0.02 95) 20%) no-repeat bottom;
   position: relative;
   z-index: var(--z-content);
 }
 
 #main {
-  background: linear-gradient(to top, var(--grey-0) 0, var(--grey-1) 20%) no-repeat top;
+  background: linear-gradient(to top, var(--grey-0) 0, oklch(0.98 0.02 95) 20%) no-repeat top;
   box-shadow: 0 1.25rem 1rem 0.3125rem var(--body-bg-shadow);
   min-width: 0;
   width: 100%;
