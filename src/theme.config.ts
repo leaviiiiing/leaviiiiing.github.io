@@ -49,6 +49,9 @@ export default defineConfig({
       tagCloud: true,
     },
   },
+  copyright: {
+    show: false,
+  },
   comments: {
     enable: false,
   },

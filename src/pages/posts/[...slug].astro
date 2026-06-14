@@ -437,7 +437,7 @@ const postMeta = {
           title={post.data.title}
           author={author}
           siteName={siteName}
-          showCopyright={true}
+          showCopyright={themeConfig.copyright?.show !== false}
           showReward={false}
           license={post.data.license}
         />
