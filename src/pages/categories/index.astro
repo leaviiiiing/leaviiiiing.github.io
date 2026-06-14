@@ -1,60 +1,129 @@
 ---
-import { getCollection } from 'astro:content';
-import BlogLayout from '../../layouts/BlogLayout.astro';
+import Layout from "../../layouts/Layout.astro";
+import { getCollection } from "astro:content";
+import {
+  formatCategories,
+  type Category,
+} from "@/toolkit/posts/formatCategories";
+import { toCategoryHref } from "@/toolkit/posts/url";
+import { t } from "@/i18n";
+import "../../styles/collapse.css";
 
-const allPosts = await getCollection('blog');
+// Get all published posts
+const allPosts = await getCollection("posts");
+const publishedPosts = allPosts.filter((post) => !post.data.draft);
 
-const categoryMap = new Map<string, { count: number; latestPost: any }>();
+// Create a map to track category hierarchy
+// Categories format: ["Parent", "Child", "Grandchild"] - array represents path
+const categoryMap = new Map<string, Category>();
 
-for (const post of allPosts) {
-  const cat = post.data.category;
-  if (!cat) continue;
-  if (cat.includes('/')) {
-    const parts = cat.split('/');
-    for (let i = 0; i < parts.length; i++) {
-      const subCat = parts.slice(0, i + 1).join('/');
-      if (!categoryMap.has(subCat)) {
-        categoryMap.set(subCat, { count: 0, latestPost: post });
-      }
-      const entry = categoryMap.get(subCat)!;
-      entry.count++;
+publishedPosts.forEach((post) => {
+  const categories = post.data.categories || [];
+
+  // Build hierarchy from category array
+  categories.forEach((cat, index) => {
+    const catId = cat.toLowerCase().replaceAll(/\s+/g, "-");
+
+    if (!categoryMap.has(catId)) {
+      categoryMap.set(catId, {
+        _id: catId,
+        name: cat,
+        posts: [],
+        length: 0,
+      });
     }
-  } else {
-    if (!categoryMap.has(cat)) {
-      categoryMap.set(cat, { count: 0, latestPost: post });
+
+    // Set parent relationship (previous category in array is parent)
+    if (index > 0) {
+      const parentCat = categories[index - 1];
+      const parentId = parentCat.toLowerCase().replaceAll(/\s+/g, "-");
+      categoryMap.get(catId)!.parent = parentId;
     }
-    const entry = categoryMap.get(cat)!;
-    entry.count++;
+
+    // Add post to the deepest category only
+    if (index === categories.length - 1) {
+      const catData = categoryMap.get(catId)!;
+      catData.posts.push(post);
+      catData.length = catData.posts.length;
+    }
+  });
+});
+
+// Update length counts for parent categories
+categoryMap.forEach((cat) => {
+  if (cat.parent) {
+    const parent = categoryMap.get(cat.parent);
+    if (parent) {
+      parent.length += cat.length;
+    }
   }
-}
+});
 
-const categories = Array.from(categoryMap.entries())
-  .map(([name, info]) => ({
-    name,
-    displayName: name.split('/').pop()!,
-    count: info.count,
-  }))
-  .sort((a, b) => b.count - a.count);
+// Convert to array and format with depth 3
+const categoriesArray = Array.from(categoryMap.values());
+const hierarchicalCategories = formatCategories(categoriesArray, { depth: 3 });
+
+type CategoryWithChildren = Category & { children?: CategoryWithChildren[] };
 ---
 
-<BlogLayout title="分类">
-  <h1 class="text-2xl font-bold mb-8 flex items-center gap-2">
-    <span class="w-1 h-6 bg-primary rounded-full inline-block"></span>
-    分类
-  </h1>
-  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-    {categories.map((cat) => (
-      <a
-        href={`/categories/${cat.name}`}
-        class="card-hover bg-white dark:bg-[var(--color-card-dark)] rounded-xl shadow-sm p-5 group"
-      >
-        <h2 class="font-semibold group-hover:text-primary transition-colors">
-          {cat.displayName}
-        </h2>
-        <p class="text-sm text-gray-400 dark:text-gray-500 mt-1">
-          {cat.count} 篇文章
-        </p>
-      </a>
-    ))}
+<Layout pageTitle={t("category.title")}>
+  <div class="wrap">
+    <div class="timeline">
+      {
+        hierarchicalCategories.map((cat: CategoryWithChildren) => (
+          <div>
+            <h2 class="item header">
+              <a href={toCategoryHref(cat.name)} itemprop="url">
+                {cat.name}
+              </a>
+              <small>( {cat.length} )</small>
+            </h2>
+
+            {cat.children &&
+              cat.children.map((child: CategoryWithChildren) => (
+                <>
+                  <h3 class="item section">
+                    <a href={toCategoryHref(child.name)} itemprop="url">
+                      {child.name}
+                    </a>
+                    <small>( {child.length} )</small>
+                  </h3>
+
+                  {child.children &&
+                    child.children.map((grandchild: CategoryWithChildren) => (
+                      <div class="item normal">
+                        <div class="title">
+                          <a
+                            href={toCategoryHref(grandchild.name)}
+                            itemprop="url"
+                          >
+                            {grandchild.name}
+                          </a>
+                          <small>( {grandchild.length} )</small>
+                        </div>
+                      </div>
+                    ))}
+                </>
+              ))}
+          </div>
+        ))
+      }
+
+      {
+        hierarchicalCategories.length === 0 && (
+          <div class="empty-state">
+            <p>{t("post.noContent")}</p>
+          </div>
+        )
+      }
+    </div>
   </div>
-</BlogLayout>
+</Layout>
+
+<style>
+  .empty-state {
+    text-align: center;
+    padding: 3rem;
+    color: var(--grey-5);
+  }
+</style>

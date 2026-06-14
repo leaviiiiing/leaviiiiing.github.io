@@ -1,56 +1,184 @@
 ---
-import { getCollection } from 'astro:content';
-import BlogLayout from '../../layouts/BlogLayout.astro';
-import PostList from '../../components/PostList.astro';
-import { resolveCover } from '../_imageStore';
+import Layout from "../../layouts/Layout.astro";
+import { getCollection } from "astro:content";
+import { currentLocale, getT } from "@/i18n";
+import { toCategoryHref, toPostHref } from "@/toolkit/posts/url";
+import "../../styles/collapse.css";
 
 export async function getStaticPaths() {
-  const posts = await getCollection('blog');
-  const categories = new Set<string>();
-  for (const post of posts) {
-    const cat = post.data.category;
-    if (!cat) continue;
-    categories.add(cat);
-    if (cat.includes('/')) {
-      const parts = cat.split('/');
-      for (let i = 0; i < parts.length; i++) {
-        categories.add(parts.slice(0, i + 1).join('/'));
+  const allPosts = await getCollection("posts");
+  const publishedPosts = allPosts.filter((post) => !post.data.draft);
+
+  // Collect all unique categories
+  const categorySet = new Set<string>();
+  publishedPosts.forEach((post) => {
+    const categories = post.data.categories || [];
+    categories.forEach((cat) => categorySet.add(cat));
+  });
+
+  // Generate paths for each category
+  return Array.from(categorySet).map((category) => ({
+    params: { category },
+    props: { category },
+  }));
+}
+
+const { category } = Astro.props as { category: string };
+const t = getT(currentLocale);
+
+// Get all published posts
+const allPosts = await getCollection("posts");
+const publishedPosts = allPosts.filter((post) => !post.data.draft);
+
+// Filter posts that belong to this category (at any level in hierarchy)
+const postsInCategory = publishedPosts.filter((post) => {
+  const categories = post.data.categories || [];
+  return categories.includes(category);
+});
+
+// Sort posts by date ascending (older first, matching old project)
+const sortedPosts = postsInCategory.toSorted(
+  (a, b) => new Date(a.data.date).getTime() - new Date(b.data.date).getTime(),
+);
+
+// Build parent categories breadcrumb
+function getParentCategories(categoryName: string): string[] {
+  const parents: string[] = [];
+  for (const post of publishedPosts) {
+    const categories = post.data.categories || [];
+    const index = categories.indexOf(categoryName);
+    if (index > 0) {
+      // Found the category, get all parents
+      for (let i = 0; i < index; i++) {
+        if (!parents.includes(categories[i])) {
+          parents.push(categories[i]);
+        }
       }
     }
   }
-  return Array.from(categories).map((cat) => ({ params: { category: cat } }));
+  return parents;
 }
 
-const { category } = Astro.params;
-const allPosts = await getCollection('blog');
+const parentCategories = getParentCategories(category);
 
-const filtered = allPosts
-  .filter((post) => {
-    const cat = post.data.category;
-    if (!cat) return false;
-    return cat === category || cat.startsWith(`${category}/`);
-  })
-  .sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
+// Group posts by their full subcategory path for rendering sections
+interface PostDisplay {
+  post: (typeof sortedPosts)[0];
+  subcategoryPath: string[];
+  subcategorySlug: string;
+}
 
-const postData = filtered.map((p) => ({
-  ...p,
-  slug: p.id,
-  data: {
-    ...p.data,
-    cover: resolveCover('blog', p.id, p.data.cover),
-  },
-}));
+const postDisplays: PostDisplay[] = [];
 
-const displayName = category!.split('/').pop()!;
+sortedPosts.forEach((post) => {
+  const categories = post.data.categories || [];
+  const currentIndex = categories.indexOf(category);
+
+  if (currentIndex >= 0) {
+    // Build subcategory path (categories after current one)
+    const subcategoryPath = categories.slice(currentIndex + 1);
+    const subcategorySlug = subcategoryPath
+      .map((c) => c.toLowerCase().replaceAll(/\s+/g, "-"))
+      .join("-");
+
+    postDisplays.push({
+      post,
+      subcategoryPath,
+      subcategorySlug,
+    });
+  }
+});
+
+function formatDate(date: Date): string {
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${month}-${day}`;
+}
+
+// Track current subcategory slug to insert section headers
+let currentSlug = "c";
 ---
 
-<BlogLayout title={displayName}>
-  <h1 class="text-2xl font-bold mb-8 flex items-center gap-2">
-    <span class="w-1 h-6 bg-primary rounded-full inline-block"></span>
-    分类：{displayName}
-    <span class="text-base font-normal text-gray-400">
-      ({filtered.length} 篇)
-    </span>
-  </h1>
-  <PostList posts={postData} />
-</BlogLayout>
+<Layout pageTitle={category}>
+  <div class="wrap">
+    <div class="timeline">
+      <h2 class="item header">
+        <a href="/categories/">{t("category.all")}</a>
+        {
+          parentCategories.map((parent) => (
+            <>
+              <small>/</small>
+              <a href={toCategoryHref(parent)}>{parent}</a>
+            </>
+          ))
+        }
+        <small>/</small>
+        {category}
+        <small>{t("category.label")}</small>
+      </h2>
+
+      {
+        postDisplays.map((display) => {
+          const { post, subcategoryPath, subcategorySlug } = display;
+          const needsHeader =
+            subcategoryPath.length > 0 && subcategorySlug !== currentSlug;
+
+          if (needsHeader) {
+            currentSlug = subcategorySlug;
+          }
+
+          return (
+            <>
+              {needsHeader && (
+                <h3 class="item section">
+                  {subcategoryPath.map((cat, index) => (
+                    <>
+                      <a href={toCategoryHref(cat)}>{cat}</a>
+                      {index < subcategoryPath.length - 1 && <small>/</small>}
+                    </>
+                  ))}
+                </h3>
+              )}
+
+              <article
+                class="item normal"
+                itemscope
+                itemtype="http://schema.org/Article"
+              >
+                <div class="meta">
+                  <time
+                    itemprop="dateCreated"
+                    datetime={post.data.date.toISOString()}
+                  >
+                    {formatDate(post.data.date)}
+                  </time>
+                </div>
+                <div class="title">
+                  <a href={toPostHref(post.id)} itemprop="url">
+                    <span itemprop="name">{post.data.title || t("category.untitled")}</span>
+                  </a>
+                </div>
+              </article>
+            </>
+          );
+        })
+      }
+
+      {
+        sortedPosts.length === 0 && (
+          <div class="empty-state">
+            <p>{t("category.noContent")}</p>
+          </div>
+        )
+      }
+    </div>
+  </div>
+</Layout>
+
+<style>
+  .empty-state {
+    text-align: center;
+    padding: 3rem;
+    color: var(--grey-5);
+  }
+</style>

@@ -1,39 +1,84 @@
 ---
-import { getCollection } from 'astro:content';
-import BlogLayout from '../../layouts/BlogLayout.astro';
+import Layout from "../../layouts/Layout.astro";
+import { getCollection } from "astro:content";
+import { generateTagCloud } from "@/toolkit/posts/generateTagCloud";
+import { toTagHref } from "@/toolkit/posts/url";
+import { t } from "@/i18n";
+import themeConfig from "@/theme.config";
+import "../../styles/tags.css";
 
-const allPosts = await getCollection('blog');
+// Get all published posts
+const allPosts = await getCollection("posts");
+const publishedPosts = allPosts.filter((post) => !post.data.draft);
 
-const tagMap = new Map<string, number>();
-for (const post of allPosts) {
-  for (const tag of post.data.tags || []) {
-    tagMap.set(tag, (tagMap.get(tag) || 0) + 1);
-  }
+// Collect all tags with their counts
+interface TagCount {
+  name: string;
+  count: number;
 }
 
-const tags = Array.from(tagMap.entries())
-  .map(([name, count]) => ({ name, count }))
-  .sort((a, b) => b.count - a.count);
+const tagMap = new Map<string, number>();
+
+publishedPosts.forEach((post) => {
+  const tags = post.data.tags || [];
+  tags.forEach((tag) => {
+    tagMap.set(tag, (tagMap.get(tag) || 0) + 1);
+  });
+});
+
+// Convert to array and generate tag cloud
+const tags: TagCount[] = Array.from(tagMap.entries()).map(([name, count]) => ({
+  name,
+  count,
+}));
+
+// Generate tag cloud with colors and font sizes
+const tagCloud = generateTagCloud(tags, {
+  minFontSize: 12,
+  maxFontSize: 30,
+  startColor: themeConfig.tagCloud?.startColor,
+  endColor: themeConfig.tagCloud?.endColor,
+  limit: 200,
+});
+
+// Sort tag cloud alphabetically for display
+const sortedTagCloud = [...tagCloud].toSorted((a, b) =>
+  a.name.localeCompare(b.name),
+);
+
+// Total tag count
+const totalTags = tags.length;
+
 ---
 
-<BlogLayout title="标签">
-  <h1 class="text-2xl font-bold mb-8 flex items-center gap-2">
-    <span class="w-1 h-6 bg-primary rounded-full inline-block"></span>
-    标签
-  </h1>
-  <div class="flex flex-wrap gap-3">
-    {tags.map((tag) => (
-      <a
-        href={`/tags/${tag.name}`}
-        class="card-hover bg-white dark:bg-[var(--color-card-dark)] rounded-xl shadow-sm px-4 py-2.5 group"
-      >
-        <span class="font-medium group-hover:text-primary transition-colors">
-          {tag.name}
-        </span>
-        <span class="text-xs text-gray-400 dark:text-gray-500 ml-1.5">
-          {tag.count}
-        </span>
-      </a>
-    ))}
+<Layout pageTitle={t("tag.title")}>
+  <div class="wrap">
+    <div class="tag-cloud-container">
+      <h2 class="item header">
+        <a href="/">{t("nav.home")}</a>
+        <small>/</small>
+        {t("common.total")}
+        {totalTags}
+        {t("tag.title")}
+      </h2>
+
+      <div class="tag-cloud">
+        {
+          sortedTagCloud.map((tag) => (
+            <a
+              href={toTagHref(tag.name)}
+              aria-label={`${tag.name} 标签`}
+              class="tag-cloud-item"
+              style={`font-size: ${tag.fontSize}px; color: ${tag.color};`}
+              title={`${tag.name} (${tag.count})`}
+            >
+              <i class="i-ri-price-tag-3-line" />
+              {tag.name}
+              <span class="tag-count">({tag.count})</span>
+            </a>
+          ))
+        }
+      </div>
+    </div>
   </div>
-</BlogLayout>
+</Layout>

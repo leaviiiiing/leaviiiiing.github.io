@@ -1,0 +1,109 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import Breadcrumb from "@/components/post/Breadcrumb.astro";
+import PostHeader from "@/components/post/PostHeader.astro";
+import PostFooter from "@/components/post/PostFooter.astro";
+import WalineComments from "@/components/post/WalineComments.svelte";
+import { currentLocale } from "@/i18n";
+import AboutContent, { frontmatter as aboutFrontmatter } from "@/content/about.mdx";
+import themeConfig from "@/theme.config";
+
+import "@/styles/post.css";
+import "@/styles/spoiler.css";
+import "katex/dist/katex-swap.min.css";
+
+interface AboutFrontmatter {
+  title?: string;
+  description?: string;
+  date?: string | Date;
+  updated?: string | Date;
+}
+
+const frontmatter = (aboutFrontmatter ?? {}) as AboutFrontmatter;
+
+const parseDate = (value: string | Date | undefined, fallback: Date) => {
+  if (value instanceof Date && !Number.isNaN(value.getTime())) {
+    return value;
+  }
+
+  if (typeof value === "string") {
+    const parsed = new Date(value);
+    if (!Number.isNaN(parsed.getTime())) {
+      return parsed;
+    }
+  }
+
+  return fallback;
+};
+
+const fallbackDate = new Date();
+const title = frontmatter.title || "关于";
+const description = frontmatter.description || "关于页面";
+const publishDate = parseDate(frontmatter.date, fallbackDate);
+const updatedDate = frontmatter.updated
+  ? parseDate(frontmatter.updated, publishDate)
+  : undefined;
+
+const postPath = "/about/";
+const permalink = Astro.site
+  ? new URL(postPath, Astro.site).toString()
+  : postPath;
+
+const siteConfig = themeConfig.sidebar || {};
+const author = siteConfig.author || "Author";
+const siteName = themeConfig.siteName || "Site";
+const commentsConfig = themeConfig.comments || {};
+const walineConfig = commentsConfig.waline || {};
+---
+
+<Layout pageTitle={title}>
+  <Fragment slot="head">
+    <meta name="description" content={description} />
+  </Fragment>
+
+  <div class="article wrap">
+    <Breadcrumb isHome={false} />
+
+    <article
+      itemscope
+      itemtype="http://schema.org/Article"
+      class="post block"
+      data-pagefind-body
+      lang={currentLocale}
+    >
+      <link itemprop="mainEntityOfPage" href={permalink} />
+
+      <PostHeader title={title} date={publishDate} />
+
+      <div class="body md" itemprop="articleBody">
+        <AboutContent />
+      </div>
+
+      <PostFooter
+        date={publishDate}
+        updated={updatedDate}
+        permalink={permalink}
+        title={title}
+        author={author}
+        siteName={siteName}
+        showCopyright={true}
+        showReward={false}
+      />
+    </article>
+  </div>
+
+  {
+    commentsConfig.enable !== false && (
+      <div id="comments" class="comment">
+        <WalineComments
+          client:visible
+          serverURL={walineConfig.serverURL}
+          lang={walineConfig.lang || currentLocale}
+          dark={walineConfig.dark}
+          path={walineConfig.path}
+          pagePath={postPath}
+        />
+      </div>
+    )
+  }
+</Layout>

@@ -1,43 +1,75 @@
 ---
-import { getCollection } from 'astro:content';
-import BlogLayout from '../../layouts/BlogLayout.astro';
-import PostList from '../../components/PostList.astro';
-import Pagination from '../../components/Pagination.astro';
-import { PAGE_SIZE } from '../../consts';
-import { resolveCover } from '../_imageStore';
+import Layout from "@/layouts/Layout.astro";
+import IndexContent from "@/components/IndexContent.astro";
+import Pagination from "@/components/Pagination.astro";
+import { getCollection } from "astro:content";
+import themeConfig from "@/theme.config";
+import type { CollectionEntry } from "astro:content";
+import type { GetStaticPaths } from "astro";
 
-export async function getStaticPaths() {
-  const allPosts = await getCollection('blog');
-  const totalPages = Math.ceil(allPosts.length / PAGE_SIZE);
-  const pages = Array.from({ length: totalPages - 1 }, (_, i) => i + 2);
-  return pages.map((page) => ({
-    params: { page: String(page) },
-  }));
-}
+export const getStaticPaths = (async ({ paginate }) => {
+  const allPosts = await getCollection("posts");
+  const publishedPosts = allPosts.filter((post) => !post.data.draft);
 
-const { page: pageParam } = Astro.params;
-const currentPage = Number(pageParam);
+  const regularPosts = publishedPosts
+    .filter((post) => !post.data.sticky)
+    .toSorted(
+      (a, b) =>
+        new Date(b.data.date).getTime() - new Date(a.data.date).getTime(),
+    );
 
-const allPosts = await getCollection('blog');
-const sorted = allPosts.sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
-const totalPages = Math.ceil(sorted.length / PAGE_SIZE);
-const start = (currentPage - 1) * PAGE_SIZE;
-const paginatedPosts = sorted.slice(start, start + PAGE_SIZE);
+  const pageSize = themeConfig.home?.pageSize ?? 10;
 
-const postData = paginatedPosts.map((p) => ({
-  ...p,
-  slug: p.id,
-  data: {
-    ...p.data,
-    cover: resolveCover('blog', p.id, p.data.cover),
-  },
-}));
+  // Astro 原生分页：生成 /page/1, /page/2 ...
+  // 但我们只输出 /page/2..N，第一页交给 src/pages/index.astro（输出 index.html）
+  const pages = paginate(regularPosts, { pageSize });
+  return pages.filter((p) => p.params.page !== "1");
+}) satisfies GetStaticPaths;
+
+const { page } = Astro.props as {
+  page: {
+    data: CollectionEntry<"posts">[];
+    currentPage: number;
+    lastPage: number;
+  };
+};
+
+const pageTitle = `${themeConfig.brand?.logo || ""} = ${themeConfig.brand?.title || ""} = ${themeConfig.brand?.subtitle || ""} - 第${page.currentPage}页`;
+
+// Build pagination navigation
+const paginationNavigation = {
+  prevUrl:
+    page.currentPage > 1
+      ? page.currentPage === 2
+        ? "/"
+        : `/page/${page.currentPage - 1}/`
+      : undefined,
+  nextUrl:
+    page.currentPage < page.lastPage
+      ? `/page/${page.currentPage + 1}/`
+      : undefined,
+};
 ---
 
-<BlogLayout title={`第 ${currentPage} 页`}>
-  <h1 class="text-2xl font-bold mb-6 text-gray-900 dark:text-gray-100">
-    第 {currentPage} 页
-  </h1>
-  <PostList posts={postData} />
-  <Pagination currentPage={currentPage} totalPages={totalPages} baseUrl="/" />
-</BlogLayout>
+<Layout
+  pageTitle={pageTitle}
+  indexPage={true}
+  navigation={paginationNavigation}
+>
+  <Fragment slot="head">
+    <meta name="description" content={themeConfig.sidebar?.description} />
+  </Fragment>
+
+  <IndexContent
+    posts={page.data}
+    stickyPosts={[]}
+    categories={[]}
+    isFirstPage={false}
+  />
+  <Pagination
+    currentPage={page.currentPage}
+    lastPage={page.lastPage}
+    firstPageHref="/"
+    routePrefix="/page"
+  />
+</Layout>

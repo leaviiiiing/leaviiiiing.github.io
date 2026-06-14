@@ -23,3 +23,9 @@ pnpm-debug.log*
 
 # jetbrains setting folder
 .idea/
+
+.turbo
+.vercel
+.env*.local
+.vscode/
+.vite/
