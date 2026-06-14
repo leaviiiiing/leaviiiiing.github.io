@@ -14,6 +14,12 @@ export default defineConfig({
       text: "文章",
       href: "/tags/",
       icon: "i-ri-quill-pen-fill",
+      dropbox: {
+        enable: true,
+        items: [
+          { href: "/tags/", text: "标签", icon: "i-ri-price-tag-3-fill" },
+        ],
+      },
     },
     { text: "友链", href: "/friends/", icon: "i-ri-link" },
   ],
