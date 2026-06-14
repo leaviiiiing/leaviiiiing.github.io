@@ -65,7 +65,7 @@ export default defineConfig({
         title: "io-wy Blog",
         desc: "",
         author: "io-wy",
-        avatar: "https://io-wy.github.io/favicon.jpg",
+        avatar: "https://io-wy.github.io/avatar.jpg",
       },
       {
         url: "https://soapsama.cn/",
