@@ -24,7 +24,6 @@ export default defineConfig({
       },
     },
     { text: "友链", href: "/friends/", icon: "i-ri-link" },
-    { text: "统计", href: "/statistics/", icon: "i-ri-bar-chart-box-line" },
   ],
   sidebar: {
     author: "Leaving",
@@ -39,6 +38,11 @@ export default defineConfig({
   },
   widgets: {
     randomPosts: false,
+  },
+  layout: {
+    rightSidebar: {
+      randomPosts: false,
+    },
   },
   comments: {
     enable: false,
