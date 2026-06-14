@@ -61,11 +61,11 @@ export default defineConfig({
     description: "一些有趣的地方",
     links: [
       {
-        url: "https://io-wy.github.io/blog/",
+        url: "https://io-wy.github.io/",
         title: "io-wy Blog",
         desc: "",
         author: "io-wy",
-        avatar: "https://io-wy.github.io/blog/favicon.jpg",
+        avatar: "https://io-wy.github.io/favicon.jpg",
       },
       {
         url: "https://soapsama.cn/",
