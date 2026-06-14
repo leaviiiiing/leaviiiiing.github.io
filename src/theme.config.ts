@@ -42,7 +42,11 @@ export default defineConfig({
   layout: {
     rightSidebar: {
       announcement: false,
+      search: false,
+      calendar: false,
+      recentMoments: false,
       randomPosts: false,
+      tagCloud: false,
     },
   },
   comments: {
