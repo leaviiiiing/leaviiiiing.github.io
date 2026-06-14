@@ -147,8 +147,8 @@ export const DEFAULT_THEME_CONFIG: ShokaXThemeConfig = {
   },
   visibilityTitle: {
     enable: true,
-    leaveTitle: "👀 你先忙，我等你回来~",
-    returnTitle: "🎉 欢迎回来！",
+    leaveTitle: "你先忙，我等你回来~",
+    returnTitle: "欢迎回来！",
     restoreDelay: 3000,
   },
   home: {
