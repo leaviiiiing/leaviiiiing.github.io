@@ -43,10 +43,10 @@ export default defineConfig({
     rightSidebar: {
       announcement: false,
       search: false,
-      calendar: false,
-      recentMoments: false,
+      calendar: true,
+      recentMoments: true,
       randomPosts: false,
-      tagCloud: false,
+      tagCloud: true,
     },
   },
   comments: {
