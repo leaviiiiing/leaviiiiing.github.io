@@ -32,6 +32,7 @@ export default defineConfig({
   },
   footer: {
     since: 2026,
+    powered: false,
     icp: {
       enable: false,
     },
