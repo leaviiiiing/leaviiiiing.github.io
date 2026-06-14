@@ -6,7 +6,7 @@ export default defineConfig({
   brand: {
     title: "Leaving's Blog",
     subtitle: "记录技术、生活与思考",
-    logo: "✨",
+    logo: "",
   },
   nav: [
     { href: "/", text: "首页", icon: "i-ri-home-line" },
