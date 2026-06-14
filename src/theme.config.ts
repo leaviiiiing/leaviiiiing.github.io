@@ -86,14 +86,14 @@ export default defineConfig({
         title: "Cube Diary",
         desc: "",
         author: "Cube1345",
-        avatar: "https://cube1345.github.io/favicon.ico",
+        avatar: "https://cube1345.github.io/img/lilisi1.jpg",
       },
       {
         url: "https://blog0x76.vercel.app/",
         title: "0x76's Blog",
         desc: "",
         author: "0x76",
-        avatar: "https://blog0x76.vercel.app/favicon.ico",
+        avatar: "",
       },
       {
         url: "https://blog.ptilopsis.cv/",
