@@ -41,6 +41,7 @@ export default defineConfig({
   },
   layout: {
     rightSidebar: {
+      announcement: false,
       randomPosts: false,
     },
   },
