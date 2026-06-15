@@ -1,7 +1,11 @@
 {
   "permissions": {
     "allow": [
-      "Bash(curl -s *)"
+      "Bash(curl -s *)",
+      "WebSearch",
+      "WebFetch",
+      "Grep",
+      "Glob"
     ]
   }
 }
