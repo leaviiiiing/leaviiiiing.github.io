@@ -3,6 +3,12 @@ import { defineConfig } from "./toolkit/themeConfig";
 
 export default defineConfig({
   siteName: "Leaving's Blog",
+  home: {
+    title: {
+      behavior: "custom" as const,
+      customTitle: "Leaving's Blog",
+    },
+  },
   brand: {
     title: "Leaving's Blog",
     subtitle: "记录技术、生活与思考",
