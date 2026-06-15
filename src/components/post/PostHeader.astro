@@ -38,11 +38,10 @@ const estimatedReadingTime = wordCount
   : readingTime || 1;
 ---
 
-<header class="post-header">
-  <div class="header-sticky">
-    <h1 class="title" itemprop="name headline">{title}</h1>
+<header class="post-header" id="post-header">
+  <h1 class="title" itemprop="name headline">{title}</h1>
 
-    <div class="meta">
+  <div class="meta">
     <span
       class="item"
       title={`${t("post.createdAt")}: ${formatFullDate(date)}`}
@@ -77,44 +76,35 @@ const estimatedReadingTime = wordCount
       <span>{estimatedReadingTime} {t("post.minutes")}</span>
     </span>
   </div>
-  </div>
 </header>
+
+<script>
+  const header = document.getElementById("post-header");
+  if (header) {
+    let ticking = false;
+    const onScroll = () => {
+      if (!ticking) {
+        requestAnimationFrame(() => {
+          const scrollY = window.scrollY;
+          if (scrollY <= 200) {
+            header.style.transform = `translateY(${scrollY * -0.15}px)`;
+            header.style.opacity = Math.max(0.7, 1 - scrollY / 600);
+          }
+          ticking = false;
+        });
+        ticking = true;
+      }
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+  }
+</script>
 
 <style>
   .post-header {
     margin-bottom: 0.75rem;
-  }
-
-  .header-sticky {
-    position: sticky;
-    top: 3.125rem;
-    z-index: 10;
+    will-change: transform, opacity;
     padding-top: 1rem;
     padding-bottom: 0.5rem;
-    background: oklch(0.98 0.02 95 / 0.85);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    transition: box-shadow 0.3s ease;
-    border-bottom: 1px solid transparent;
-  }
-
-  @supports (animation-timeline: scroll()) {
-    .header-sticky {
-      animation: sticky-shadow linear both;
-      animation-timeline: scroll(root);
-      animation-range: 0 120px;
-    }
-  }
-
-  @keyframes sticky-shadow {
-    from {
-      border-bottom-color: transparent;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0);
-    }
-    to {
-      border-bottom-color: var(--grey-2, oklch(0.92 0.01 95));
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
-    }
   }
 
   .title {
@@ -143,7 +133,7 @@ const estimatedReadingTime = wordCount
   }
 
   @media (max-width: 768px) {
-    .header-sticky {
+    .post-header {
       padding-top: 0.75rem;
       padding-bottom: 0.35rem;
     }
