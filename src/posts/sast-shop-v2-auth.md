@@ -1,5 +1,5 @@
 ---
-title: SAST-Shop开发笔记
+title: 七天写一个飞书登录——SAST Shop v2 开发日志
 date: 2026-06-14
 tags: [Go, OAuth, 微服务, Redis]
 description: 在 SAST Shop v2 负责飞书 OAuth 认证模块的开发记录。从手写 HTTP 客户端到切官方 SDK，再到完整的用户登录链路与前端 JSAPI 鉴权。

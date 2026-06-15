@@ -114,27 +114,28 @@ function formatWordCount(count: number): string {
   </div>
 </div>
 
-<!-- 滚动监听脚本 -->
+<!-- 视差跟随脚本 -->
 <script>
-  let isAffix = false;
   const brandElement = document.querySelector("#brand");
+  let ticking = false;
 
   function handleScroll() {
-    const shouldAffix = window.scrollY > 0;
-
-    if (shouldAffix !== isAffix) {
-      isAffix = shouldAffix;
-      if (brandElement) {
-        brandElement.classList.toggle("affix", isAffix);
-      }
+    if (!ticking) {
+      requestAnimationFrame(() => {
+        if (brandElement) {
+          const scrollY = window.scrollY;
+          // 视差：品牌区域以 30% 速度上移，透明度渐降
+          brandElement.style.transform = `translateY(-${scrollY * 0.3}px)`;
+          brandElement.style.opacity = Math.max(0.4, 1 - scrollY / 600);
+        }
+        ticking = false;
+      });
+      ticking = true;
     }
   }
 
-  // 初始化
-  handleScroll();
-
-  // 监听滚动
   window.addEventListener("scroll", handleScroll, { passive: true });
+  handleScroll();
 </script>
 
 <style>
