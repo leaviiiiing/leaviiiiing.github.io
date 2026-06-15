@@ -38,7 +38,7 @@ const estimatedReadingTime = wordCount
   : readingTime || 1;
 ---
 
-<header class="post-header">
+<header>
   <h1 class="title" itemprop="name headline">{title}</h1>
 
   <div class="meta">
@@ -77,81 +77,3 @@ const estimatedReadingTime = wordCount
     </span>
   </div>
 </header>
-
-<style>
-  .post-header {
-    position: sticky;
-    top: 3.125rem;
-    z-index: 9;
-    margin-bottom: 0.75rem;
-    padding-top: 1rem;
-    padding-bottom: 0.5rem;
-    background: oklch(0.98 0.02 95 / 0.85);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    transition: box-shadow 0.3s ease, border-color 0.3s ease;
-    border-bottom: 1px solid transparent;
-  }
-
-  /* 滚动后出现分隔线 */
-  @supports (animation-timeline: scroll()) {
-    .post-header {
-      animation: header-shadow linear both;
-      animation-timeline: scroll(root);
-      animation-range: 0 120px;
-    }
-  }
-
-  @keyframes header-shadow {
-    from {
-      border-bottom-color: transparent;
-      box-shadow: none;
-    }
-    to {
-      border-bottom-color: var(--grey-2, oklch(0.92 0.01 95));
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-    }
-  }
-
-  .title {
-    margin: 0 0 0.35rem;
-    font-size: 1.75rem;
-    color: var(--grey-7);
-    transition: font-size 0.3s ease;
-  }
-
-  .meta {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.6rem 1.25rem;
-    color: var(--grey-6);
-    font-size: 0.9rem;
-  }
-
-  .item {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.25rem;
-    white-space: nowrap;
-  }
-
-  .icon .ic {
-    font-size: 1.05em;
-  }
-
-  @media (max-width: 768px) {
-    .post-header {
-      padding-top: 0.75rem;
-      padding-bottom: 0.35rem;
-    }
-
-    .title {
-      font-size: 1.4rem;
-    }
-
-    .meta {
-      font-size: 0.8rem;
-      gap: 0.4rem 0.9rem;
-    }
-  }
-</style>
